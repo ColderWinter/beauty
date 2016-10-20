@@ -16,7 +16,13 @@ use Beauty\Route;
 use Beauty\App;
 use Beauty\Request;
 
-Route::add('www.bcd.com', '/user/get', 'Beauty', 'User', 'get');
+$domain = 'www.bcd.com';
+$namespace = 'Beauty';
+
+Route::group($domain, $namespace, function () {
+    Route::add('/user/get', 'User@getUserInformation');
+    Route::add('/user/add', 'User@addUser');
+});
 
 $app = new App();
 $request = new Request();

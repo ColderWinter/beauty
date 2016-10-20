@@ -11,6 +11,13 @@ namespace Beauty;
 
 class App
 {
+    /**
+     * 运行App，处理request并返回结果
+     *
+     * @param Request $request
+     *
+     * @throws \Exception
+     */
     public function handle(Request $request)
     {
         if (! isset($_SERVER['PATH_INFO'])) {
@@ -31,34 +38,43 @@ class App
     }
 
     /**
-     * 执行路由方法
-     *
-     * @param string  $domain
-     * @param string  $path
+     * 执行路由
+     * 
+     * @param string  $domain 域名
+     * @param string  $path 路由
      * @param Request $request
      *
      * @return mixed
+     * @throws \Exception
      */
     private static function route($domain, $path, Request $request)
     {
-        $namespace = '';
         $class = '';
         $method = '';
 
-        $routes = Route::$routes;
-        foreach ($routes as $route) {
-            if (($route['domain'] == $domain) && ($route['path']) == $path) {
-                $namespace = $route['namespace'];
-                $class = $route['class'];
-                $method = $route['method'];
+        $path = $domain . $path;
 
+        $routes = Route::$routes;
+
+        $hasRoute = false;
+        foreach ($routes as $route) {
+            if ($route['path'] == $path) {
+                $action = $route['action'];
+                list($class, $method) = explode('@', $action);
+                $hasRoute = true;
                 break;
             }
         }
 
-        $class = $namespace . '\\' . $class;
+        if (! $hasRoute) {
+            throw new \Exception('路由不存在');
+        }
 
         $class = new $class();
+
+        if (! method_exists($class, $method)) {
+            throw new \Exception('方法不存在。');
+        }
 
         $params = self::reflectParams($class, $method, $request);
 
